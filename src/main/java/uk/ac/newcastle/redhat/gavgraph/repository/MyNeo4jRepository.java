@@ -12,12 +12,12 @@ import java.util.Map;
 
 import static org.neo4j.ogm.cypher.ComparisonOperator.EQUALS;
 
-public class Neo4jRepository<E> {
+public class MyNeo4jRepository<E> {
 
     protected Class<E> entityTypeClazz;
     protected Session neo4jSession;
 
-    public Neo4jRepository(Class<E> entityTypeClazz) {
+    public MyNeo4jRepository(Class<E> entityTypeClazz) {
         MyConfiguration myConfiguration = new MyConfiguration();
         SessionFactory sessionFactory = myConfiguration.sessionFactory();
         //get Ogm session

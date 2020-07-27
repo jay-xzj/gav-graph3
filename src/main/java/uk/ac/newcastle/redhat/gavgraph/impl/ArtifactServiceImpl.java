@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
 import uk.ac.newcastle.redhat.gavgraph.domain.nodes.Artifact;
 import uk.ac.newcastle.redhat.gavgraph.repository.ArtifactRepository;
-import uk.ac.newcastle.redhat.gavgraph.repository.Neo4jRepository;
+import uk.ac.newcastle.redhat.gavgraph.repository.MyNeo4jRepository;
 import uk.ac.newcastle.redhat.gavgraph.service.ArtifactService;
 
 import javax.annotation.Resource;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ArtifactServiceImpl extends Neo4jRepository<Artifact> implements ArtifactService {
+public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements ArtifactService {
 
     @Resource
     private ArtifactRepository artifactRepository;
