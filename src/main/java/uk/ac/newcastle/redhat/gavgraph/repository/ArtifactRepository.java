@@ -35,6 +35,9 @@ public interface ArtifactRepository extends CrudRepository<Artifact, Long> {
     @Query("MATCH (a:Artifact {gav:$gav}) return ID(a)")
     Long getIdByGav(String gav);
 
+    @Query("MATCH (a:Artifact) WHERE a.gav =~ $queryGav RETURN a.gav")
+    List<String> findArtifactMatchOrg(String queryGav);
+
     /*@Query("MATCH (connected)-[:DEPEND_ON*$hop]->(root:Artifact {gav: $gav})\n" +
             "WHERE root <> connected RETURN distinct connected")
     List<Artifact> findAllDependOnCurrent(String gav,int hop,int limit);*/

@@ -1,8 +1,10 @@
 package uk.ac.newcastle.redhat.gavgraph.service;
 
+import org.apache.maven.model.Model;
 import uk.ac.newcastle.redhat.gavgraph.domain.nodes.Artifact;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ArtifactService {
 
@@ -25,4 +27,6 @@ public interface ArtifactService {
     //List<Artifact> findAllDependOnCurrent(String gav,int hop, int limit);
 
     List<Artifact> findAllDependOnCurrent(String gav,int pageSize,int pageNo);
+
+    List<Map<String,Object>> analysePomDependencies(Model model,String orgName);
 }

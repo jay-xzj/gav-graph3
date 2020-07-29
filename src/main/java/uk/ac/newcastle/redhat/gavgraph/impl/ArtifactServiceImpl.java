@@ -1,15 +1,22 @@
 package uk.ac.newcastle.redhat.gavgraph.impl;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
 import org.springframework.stereotype.Service;
 import uk.ac.newcastle.redhat.gavgraph.domain.nodes.Artifact;
+import uk.ac.newcastle.redhat.gavgraph.pom.util.PomUtil2;
 import uk.ac.newcastle.redhat.gavgraph.repository.ArtifactRepository;
 import uk.ac.newcastle.redhat.gavgraph.repository.MyNeo4jRepository;
 import uk.ac.newcastle.redhat.gavgraph.service.ArtifactService;
 
 import javax.annotation.Resource;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements ArtifactService {
@@ -124,5 +131,53 @@ public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements 
     @Override
     public List<Artifact> findAllDependOnCurrent(String gav,int pageSize,int pageNo) {
         return artifactRepository.findAllDependOnCurrent(gav,pageSize,pageNo);
+    }
+
+    @Override
+    public List<Map<String, Object>> analysePomDependencies(Model model,String orgName) {
+        List<Map<String, Object>> maps = new ArrayList<>();
+        /*Map<String, Object> map = new HashMap<>();
+        map.put("origin","org.log4j:log4j2:1.3");
+        map.put("in-house","org.log4j:log4j2:1.3-redhat.2");
+        maps.add(map);*/
+        List<Dependency> dependencies = model.getDependencies();
+        for (Dependency dependency : dependencies) {
+            String artifactId = dependency.getArtifactId();
+            String groupId = dependency.getGroupId();
+            String version = dependency.getVersion();
+            String trueArtifactId = null;
+            String trueVersion = null;
+            try {
+                trueArtifactId = PomUtil2.resolveDependencyArtifactId(model,dependency);
+                trueVersion = PomUtil2.resolveDependencyVersion(model, artifactId, version);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+            if (StringUtils.isNotBlank(groupId)&&StringUtils.isNotBlank(trueArtifactId)&&StringUtils.isNotBlank(trueVersion)){
+                String originalGav = groupId+":"+trueArtifactId+":"+trueVersion;
+                String queryGav = originalGav+"."+orgName+".*";
+                List<String> artifactMatchOrg = artifactRepository.findArtifactMatchOrg(queryGav);
+                if (artifactMatchOrg.size()>0){
+                    artifactMatchOrg.forEach(s -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("origin",originalGav);
+                        map.put("in-house",s);
+                        maps.add(map);
+                    });
+                }else{
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("origin",originalGav);
+                    map.put("in-house","");
+                    maps.add(map);
+                }
+            }else{
+                String originalGav = groupId+":"+trueArtifactId+":"+trueVersion;
+                Map<String, Object> map = new HashMap<>();
+                map.put("origin",originalGav);
+                map.put("in-house","");
+                maps.add(map);
+            }
+        }
+        return maps;
     }
 }

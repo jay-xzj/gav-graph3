@@ -6,7 +6,7 @@ import lombok.Setter;
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
-import uk.ac.newcastle.redhat.gavgraph.domain.Neo4jEntity;
+import uk.ac.newcastle.redhat.gavgraph.domain.Relationship;
 import uk.ac.newcastle.redhat.gavgraph.domain.nodes.Artifact;
 
 import java.io.Serializable;
@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @RelationshipEntity(type = "DEPEND_ON")
-public class DependOn extends Neo4jEntity implements Serializable {
+public class DependOn extends Relationship implements Serializable {
 
     @JsonIgnore
     @StartNode

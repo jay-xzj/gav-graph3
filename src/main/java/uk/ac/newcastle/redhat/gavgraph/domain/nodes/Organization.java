@@ -4,13 +4,14 @@ import io.swagger.annotations.ApiModelProperty;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 import uk.ac.newcastle.redhat.gavgraph.domain.Neo4jEntity;
+import uk.ac.newcastle.redhat.gavgraph.domain.Node;
 
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.Set;
 
 @NodeEntity
-public class Organization extends Neo4jEntity implements Serializable {
+public class Organization extends Node implements Serializable {
     @ApiModelProperty(hidden = true)
     private Long id;
 
