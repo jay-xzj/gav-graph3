@@ -176,15 +176,17 @@ public class ArtifactController {
         return new ResponseEntity<>(artifacts, HttpStatus.OK);
     }
 
-    @GetMapping("/findAllDependOnCurrent/{gav}/{limit}")
+    @GetMapping("/findAllDependOnCurrent/{gav}/{pageSize}/{pageNo}")
     @ApiOperation(value = "fetch all artifacts depend on current one", notes = "return a list of artifacts")
     public ResponseEntity<List<Artifact>> findAllDependOnCurrent(
             @PathVariable @ApiParam(defaultValue = "com.twitter:finagle-core_2.11:6.25.0") String gav,
-            //@PathVariable @ApiParam(defaultValue = "1") int hop,
-            @PathVariable @ApiParam(defaultValue = "5000")int limit) {
+            @PathVariable @ApiParam(defaultValue = "10") int pageSize,
+            @PathVariable @ApiParam(defaultValue = "1") int pageNo
+            //@PathVariable @ApiParam(defaultValue = "5000")int limit
+            ) {
         List<Artifact> artifacts = null;
         try{
-            artifacts = artifactService.findAllDependOnCurrent(gav,limit);
+            artifacts = artifactService.findAllDependOnCurrent(gav, pageSize, (pageNo >= 1?(pageNo-1):0));
         }catch (Exception e){
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

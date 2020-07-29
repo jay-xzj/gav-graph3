@@ -24,5 +24,5 @@ public interface ArtifactService {
 
     //List<Artifact> findAllDependOnCurrent(String gav,int hop, int limit);
 
-    List<Artifact> findAllDependOnCurrent(String gav,int limit);
+    List<Artifact> findAllDependOnCurrent(String gav,int pageSize,int pageNo);
 }

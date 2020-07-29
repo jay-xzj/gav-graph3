@@ -27,8 +27,8 @@ public interface ArtifactRepository extends CrudRepository<Artifact, Long> {
     List<Artifact> getALlByGroupIdContains(String groupId);
 
     @Query("MATCH (connected)-[:DEPEND_ON*]->(root:Artifact {gav: $gav})\n" +
-            "WHERE root <> connected RETURN distinct connected limit $limit")
-    List<Artifact> findAllDependOnCurrent(String gav,int limit);
+            "WHERE root <> connected RETURN distinct connected skip ($pageSize * $pageNo) limit $pageSize")
+    List<Artifact> findAllDependOnCurrent(String gav,int pageSize,int pageNo);
 
     List<Artifact> findDependOnByArtifactId(String artifactId, Sort sort);
 
