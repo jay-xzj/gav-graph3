@@ -122,7 +122,7 @@ public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements 
     }*/
 
     @Override
-    public List<Artifact> findAllDependOnCurrent(String gav,int limit) {
-        return artifactRepository.findAllDependOnCurrent(gav,limit);
+    public List<Artifact> findAllDependOnCurrent(String gav,int pageSize,int pageNo) {
+        return artifactRepository.findAllDependOnCurrent(gav,pageSize,pageNo);
     }
 }
