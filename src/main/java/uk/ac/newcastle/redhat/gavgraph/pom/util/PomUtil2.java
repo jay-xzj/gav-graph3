@@ -234,6 +234,62 @@ public class PomUtil2 {
         return artifactId;
     }
 
+    public static String resolveDependencyArtifactId(Model model,Dependency dependency) {
+        String artifactId = dependency.getArtifactId();
+        System.err.println("============= START resolveArtifactId  model = "+model+", artifactId = "+artifactId+"==============");
+        if (!artifactId.contains("$")){
+            return artifactId;
+        }
+        String[] split = null;
+        try {
+            split = artifactId.split("\\$");
+        }catch (Exception e) {
+            System.out.println(model);
+        }
+        Map<String, Map<String,String>> keyMaps = new HashMap<>();
+        //List<Map<String, String>> list = new ArrayList<>();
+        //Map<String, String> keyMaps = new HashMap<>();
+        for (String str : split) {
+            if (str.contains("{")) {
+                int b = str.indexOf("{");
+                int e = str.indexOf("}");
+                String key = str.substring(b + 1, e);
+                Map<String,String> map = new HashMap<String, String>();
+                String ELKey = "${" + key + "}";
+                map.put(ELKey, key);
+                //list.add(map);
+                map.put(ELKey, key);
+                keyMaps.put(ELKey, map);
+            }
+        }
+
+        //去寻找key的值
+        for(Map.Entry<String,Map<String,String>> en: keyMaps.entrySet()){
+            String ELkey = en.getKey();
+            //String key = en.getValue();
+            Map<String, String> value = en.getValue();
+            String key = value.get(ELkey);
+            //调用查找version的方法
+            String version = null;
+            Properties properties = model.getProperties();
+            if (properties != null&&properties.size() > 0){
+                version = (String) properties.get(key);
+            }
+            //value.put(ELkey,version);
+            //value.remove(ELkey);
+            if (version == null){
+                return null;
+            }else{
+                artifactId = artifactId.replace(ELkey, version);
+            }
+        }
+
+        System.err.println("============= END resolveArtifactId  ==============");
+        // ${key}:key -> value -> ${key}:value
+        return artifactId;
+    }
+
+
     /**
      * get version from other tags in this pom which is represented by EL Expression
      * @param model
@@ -643,6 +699,24 @@ public class PomUtil2 {
         }
         return version;
     }
+
+    public static String resolveDependencyVersion(Model model, String artifactId, String version) throws SQLException {
+        if (version != null) {
+            if (version.contains("$")) {//this means version should be found in properties
+                String key = getELKey(version);
+                Properties properties = model.getProperties();
+                if (properties != null&&properties.size() > 0){
+                    version = (String) properties.get(key);
+                }
+            }else
+                return version;
+        }else {
+            //get Version from parent e.g.spring-boot-starter
+            version = model.getParent().getVersion();
+        }
+        return version;
+    }
+
 
     /**
      * find the version through parent or parent's parent

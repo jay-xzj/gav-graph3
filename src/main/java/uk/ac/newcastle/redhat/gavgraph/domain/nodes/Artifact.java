@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 import uk.ac.newcastle.redhat.gavgraph.domain.Neo4jEntity;
+import uk.ac.newcastle.redhat.gavgraph.domain.Node;
 import uk.ac.newcastle.redhat.gavgraph.domain.relationships.DependOn;
 
 import java.io.Serializable;
@@ -22,7 +23,7 @@ import java.util.Set;
 @NodeEntity
 @Setter
 @Getter
-public class Artifact extends Neo4jEntity implements Serializable {
+public class Artifact extends Node implements Serializable {
 
     @ApiModelProperty(hidden = true)
     private Long id;

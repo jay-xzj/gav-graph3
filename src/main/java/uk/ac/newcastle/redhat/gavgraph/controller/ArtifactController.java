@@ -1,22 +1,35 @@
 package uk.ac.newcastle.redhat.gavgraph.controller;
 
 import io.swagger.annotations.*;
+import org.apache.maven.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import uk.ac.newcastle.redhat.gavgraph.domain.nodes.Artifact;
 import uk.ac.newcastle.redhat.gavgraph.exception.NotFoundException;
+import uk.ac.newcastle.redhat.gavgraph.pom.util.PomUtil2;
+import uk.ac.newcastle.redhat.gavgraph.pom.util.WriteCsvTool2;
 import uk.ac.newcastle.redhat.gavgraph.repository.ArtifactRepository;
 import uk.ac.newcastle.redhat.gavgraph.service.ArtifactService;
+import uk.ac.newcastle.redhat.gavgraph.util.FileDownloadAndUploadUtil;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/artifacts")
@@ -207,41 +220,74 @@ public class ArtifactController {
         return artifactRepository.save(existing);
     }
 
+    @Autowired
+    private Environment environment;
 
     /**
-     * 解决方案:将红帽自由的项目加上标签 organization:red hat
-     * 从数据库里先把这些项目找出来
-     * 然后遍历这个list 查询上传的pom里面的某个dependency artifact 比如 log4j:1.2 是否被这个list里面的某个项目所直接或者间接依赖。
-     * 然后组成一个dependency gav:[project1:used, project2:used,project3:used] 这样的结果。打印出来即可
-     * 如果没有used的项目，进一步，可以只查询有没有同一个artifactId的。那么就可以找到是不是稍微修改一下版本号就可以用了。
+     * 解决方案:
+     * 红帽内部自研版本会在version后面带有redhat字样，
+     * 我们只要根据当前的gav找到 相同version并且后面带redhat suffix的即可
      */
-    @PostMapping(value="/upload-image",headers="content-type=multipart/form-data")
-    @ApiOperation(value = "图片上传", notes = "图片上传")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "organization", value = "redhat", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "deviceId", value = "deviceId", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "mobilePhone", value = "mobilePhone", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "appName", value = "appName名称", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "cardNo", value = "银行卡号,上传银行卡反面图片时必须填", required = false, dataType = "String", paramType = "query"),
-    })
-    public ResponseEntity<List<Artifact>> imageUpload(HttpServletRequest request,
-                                                      HttpServletResponse response,
-                                                      @ApiParam(name = "attach",value = "attach", required = true) MultipartFile attach,
-                                                      String org,
-                                                      String deviceId,
-                                                      String mobilePhone,
-                                                      String appName,
-                                                      String cardNo){
-        //organization:red hat 从数据库里先把这些项目找出来
-        //List<Artifact> artifacts = artifactRepository.findAllByOrganization(org);
+    @PostMapping(value="/pomUploadAndAnalyse",headers="content-type=multipart/form-data")
+    @ApiOperation(value = "pom uploading", notes = "pom uploading")
+    public String pomUploadAndAnalyse(
+        HttpServletResponse response,
+        HttpServletRequest request,
+        @RequestParam("file") @ApiParam(name = "file",value = "file", required = true) MultipartFile file,
+        @RequestParam("orgName") @ApiParam(defaultValue = "redhat") String orgName) throws IOException {
+        String result = "failed";
+        //上传pom的路径，也是下载生成的excel报告的路径
+        String uploadDir = environment.getProperty("upload.dir");
+        try {
+            if (file.isEmpty()) {
+                //上传pom文件为空
+                return "";
+            }
 
-        //解析上传文件的依赖gav，当做参数传入后台去校验
-        //List<String> dependencies = readPom();
+            String uploadRes = FileDownloadAndUploadUtil.upload(uploadDir, file);
+            String originalFilename = file.getOriginalFilename();
+            File pomFile = null;
+            Model model = null;
+            if (originalFilename.endsWith("pom")||originalFilename.endsWith("xml")) {
+                pomFile = new File(uploadDir + File.separator + file.getOriginalFilename());
+                model = PomUtil2.getPomModel(pomFile);
+            }
+            List<Map<String,Object>> reportData = artifactService.analysePomDependencies(model,orgName);
 
-        //List <> result = checkUsed(artifacts,dependencies);
+            //generate report
+            String reportName = "pom_analyse_report_"+orgName+"_"+System.currentTimeMillis()+".csv";
+            String filePath = uploadDir+File.separator+reportName;
+            File downloadFile = new File(filePath);
+            if (!downloadFile.getParentFile().exists()){
+                downloadFile.getParentFile().mkdirs();
+            }
+            //解析上传文件的依赖gav，当做参数传入后台去校验
+            String[] displayColNames = {"origin","in-house"};
+            String[] fieldNames = {"origin","in-house"};
+            WriteCsvTool2.writeCvs(filePath,reportData, displayColNames,fieldNames );
 
+            if (!downloadFile.exists()){
+                //没有生成相应的报告
+                return "analyse failed!";
+            }
 
-        return null;
+            // 设置信息给客户端不解析
+            String type = new MimetypesFileTypeMap().getContentType(reportName);
+            // 设置contenttype，即告诉客户端所发送的数据属于什么类型
+            response.setHeader("Content-type",new MimetypesFileTypeMap().getContentType(reportName));
+            response.setContentType("application/octet-stream");
+            // 设置编码
+            String encoded = new String(reportName.getBytes("utf-8"), "iso-8859-1");
+            // 设置扩展头，当Content-Type 的类型为要下载的类型时 , 这个信息头会告诉浏览器这个文件的名字和类型。
+            response.setHeader("Content-Disposition", "attachment;filename=" + encoded);
+            result = FileDownloadAndUploadUtil.download(downloadFile,response);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            return result;
+        }
+
+        return result;
     }
 
 
