@@ -4,10 +4,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.newcastle.redhat.gavgraph.domain.nodes.Artifact;
 
 import java.util.List;
 
+@Transactional
 @Repository
 public interface ArtifactRepository extends CrudRepository<Artifact, Long> {
 
