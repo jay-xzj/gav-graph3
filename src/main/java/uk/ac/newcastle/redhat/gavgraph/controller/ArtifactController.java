@@ -9,9 +9,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import uk.ac.newcastle.redhat.gavgraph.domain.nodes.Artifact;
 import uk.ac.newcastle.redhat.gavgraph.exception.NotFoundException;
@@ -25,15 +24,16 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/artifacts")
 @Api(value = "Artifact API")
+@Validated
 public class ArtifactController {
 
     @Resource
@@ -48,7 +48,7 @@ public class ArtifactController {
     @ApiOperation(value = "Add a new Artifact to the database")
     public ResponseEntity<Artifact> create(
             @RequestBody @ApiParam(value = "JSON representation of an artifact to be added to the database", required = true)
-                    Artifact artifact) {
+            @Valid Artifact artifact) {
         if (artifact == null){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -63,6 +63,17 @@ public class ArtifactController {
         }
         return new ResponseEntity<>(save, HttpStatus.CREATED);
     }
+   /* @PostMapping("/create")
+    @ApiOperation(value = "Add a new Artifact to the database")
+    public void create(
+            @RequestBody @ApiParam(value = "JSON representation of an artifact to be added to the database", required = true)
+            Artifact artifact) {
+        if (artifact == null){
+            throw new APIException("parameter can not be null");
+        }
+       artifactService.save(artifact);
+    }*/
+
 
     @GetMapping("/findAllPagination/{pageSize}/{depth}")
     @ApiOperation(value = "fetch all artifacts", notes = "return a list of artifacts")
@@ -196,7 +207,7 @@ public class ArtifactController {
             @PathVariable @ApiParam(defaultValue = "10") int pageSize,
             @PathVariable @ApiParam(defaultValue = "1") int pageNo
             //@PathVariable @ApiParam(defaultValue = "5000")int limit
-            ) {
+    ) {
         List<Artifact> artifacts = null;
         try{
             artifacts = artifactService.findAllDependOnCurrent(gav, pageSize, (pageNo >= 1?(pageNo-1):0));
@@ -231,10 +242,10 @@ public class ArtifactController {
     @PostMapping(value="/pomUploadAndAnalyse",headers="content-type=multipart/form-data")
     @ApiOperation(value = "pom uploading", notes = "pom uploading")
     public String pomUploadAndAnalyse(
-        HttpServletResponse response,
-        HttpServletRequest request,
-        @RequestParam("file") @ApiParam(name = "file",value = "file", required = true) MultipartFile file,
-        @RequestParam("orgName") @ApiParam(defaultValue = "redhat") String orgName) throws IOException {
+            HttpServletResponse response,
+            HttpServletRequest request,
+            @RequestParam("file") @ApiParam(name = "file",value = "file", required = true) MultipartFile file,
+            @RequestParam("orgName") @ApiParam(defaultValue = "redhat") String orgName) throws IOException {
         String result = "failed";
         //上传pom的路径，也是下载生成的excel报告的路径
         String uploadDir = environment.getProperty("upload.dir");

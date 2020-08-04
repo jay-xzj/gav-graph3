@@ -5,10 +5,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
-import uk.ac.newcastle.redhat.gavgraph.domain.Neo4jEntity;
 import uk.ac.newcastle.redhat.gavgraph.domain.Node;
 import uk.ac.newcastle.redhat.gavgraph.domain.relationships.DependOn;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.Set;
@@ -28,15 +28,19 @@ public class Artifact extends Node implements Serializable {
     @ApiModelProperty(hidden = true)
     private Long id;
 
+    @NotNull
     @ApiModelProperty(example = "uk.neo4j.graph")
     private String groupId;
 
+    @NotNull
     @ApiModelProperty(example = "neo4j-graph")
     private String artifactId;
 
+    @NotNull
     @ApiModelProperty(example = "1.0")
     private String version;
 
+    @NotNull
     @ApiModelProperty(example = "uk.neo4j.graph:neo4j-graph:1.0")
     private String gav;
 
