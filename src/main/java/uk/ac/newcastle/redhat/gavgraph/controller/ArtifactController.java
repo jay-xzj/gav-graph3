@@ -211,6 +211,7 @@ public class ArtifactController {
         List<Artifact> artifacts = null;
         try{
             artifacts = artifactService.findAllDependOnCurrent(gav, pageSize, (pageNo >= 1?(pageNo-1):0));
+            //artifacts = artifactService.findAllDependOnCurrentV2(gav);
         }catch (Exception e){
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

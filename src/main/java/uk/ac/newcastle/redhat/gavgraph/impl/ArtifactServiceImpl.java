@@ -134,6 +134,25 @@ public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements 
     }
 
     @Override
+    public List<Artifact> findAllDependOnCurrentV2(String gav) {
+        long start = System.currentTimeMillis();
+        String cypher1 = "Match (some:Artifact) where not exists(()-[:DEPEND_ON]->(some)) and exists((some)-[:DEPEND_ON]->()) return distinct some";
+        Iterable<Artifact> query = query(cypher1);
+        ArrayList<Artifact> artifacts = Lists.newArrayList(query);
+        int size = artifacts.size();
+        System.out.println(artifacts);
+        for (Artifact artifact : artifacts) {
+            String gav1 = artifact.getGav();
+            String cypher = "match (a:Artifact {gav:\""+gav1+"\"}) ,(b:Artifact {gav:\"org.slf4j:slf4j-api:1.7.21\"}),p=allshortestpaths((a)-[:DEPEND_ON*]->(b)) return p";
+            query(cypher);
+        }
+        long end = System.currentTimeMillis();
+        long timeConsume = end - start;
+        System.out.println("timeConsume = " + timeConsume);
+        return null;
+    }
+
+    @Override
     public List<Map<String, Object>> analysePomDependencies(Model model,String orgName) {
         List<Map<String, Object>> maps = new ArrayList<>();
         /*Map<String, Object> map = new HashMap<>();
