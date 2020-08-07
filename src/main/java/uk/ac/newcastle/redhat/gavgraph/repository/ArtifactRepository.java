@@ -28,8 +28,11 @@ public interface ArtifactRepository extends CrudRepository<Artifact, Long> {
     @Query("MATCH (a:Artifact) WHERE a.groupId CONTAINS $groupId RETURN a")
     List<Artifact> getALlByGroupIdContains(String groupId);
 
-    @Query("MATCH (connected)-[:DEPEND_ON*]->(root:Artifact {gav: $gav})\n" +
-            "WHERE root <> connected RETURN distinct connected skip ($pageSize * $pageNo) limit $pageSize")
+    /*@Query("MATCH (connected)-[:DEPEND_ON*]->(root:Artifact {gav: $gav})\n" +
+            "WHERE root <> connected RETURN distinct connected skip ($pageSize * $pageNo) limit $pageSize")*/
+    @Query("MATCH (a:Artifact {gav:$gav})\n" +
+            "CALL apoc.path.subgraphNodes(a, {relationshipFilter:'<DEPEND_ON', labelFilter:'>Artifact'}) YIELD node\n" +
+            "RETURN node skip ($pageSize * $pageNo) limit $pageSize")
     List<Artifact> findAllDependOnCurrent(String gav,int pageSize,int pageNo);
 
     List<Artifact> findDependOnByArtifactId(String artifactId, Sort sort);
