@@ -1,5 +1,6 @@
 package uk.ac.newcastle.redhat.gavgraph.repository;
 
+import com.sun.org.apache.bcel.internal.generic.RETURN;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -34,6 +35,11 @@ public interface ArtifactRepository extends CrudRepository<Artifact, Long> {
             "CALL apoc.path.subgraphNodes(a, {relationshipFilter:'<DEPEND_ON', labelFilter:'>Artifact'}) YIELD node\n" +
             "RETURN node skip ($pageSize * $pageNo) limit $pageSize")
     List<Artifact> findAllDependOnCurrent(String gav,int pageSize,int pageNo);
+
+    @Query("MATCH (a:Artifact {gav:$gav}) MATCH (end:Artifact) WHERE end.version CONTAINS $org WITH a, collect(end) AS endNodes " +
+            "CALL apoc.path.subgraphNodes(a, {relationshipFilter:'<DEPEND_ON', labelFilter:'>Artifact', endNodes: endNodes})" +
+            "YIELD node RETURN node skip($pageSize * $pageNo) limit $pageSize")
+    List<Artifact> findAllDependOnCurrentBelongToOrg(String gav,int pageSize,int pageNo,String org);
 
     List<Artifact> findDependOnByArtifactId(String artifactId, Sort sort);
 

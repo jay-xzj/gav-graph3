@@ -84,24 +84,6 @@ public class ArtifactController {
         return new ResponseEntity<>(artifacts, HttpStatus.OK);
     }
 
-    /*@GetMapping("/findAll")
-    @ApiOperation(value = "fetch all artifacts", notes = "return a list of artifacts")
-    @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "No Content"),
-            @ApiResponse(code = 302, message = "Found")
-    })
-    public ResponseEntity<List<Artifact>> findAll(){
-        List<Artifact> artifacts;
-        try {
-            artifacts = artifactService.findAllZeroDepth();
-        }catch (Exception e){
-            e.printStackTrace();
-            logger.error("Exception occurs while retrieving all artifacts : " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(artifacts, HttpStatus.OK);
-    }*/
-
     @GetMapping("findById/{id}")
     @ApiOperation(value = "find artifact by id",notes = "return an artifact with certain id")
     @ApiResponses(value = {
@@ -200,6 +182,26 @@ public class ArtifactController {
         List<Artifact> artifacts = null;
         try{
             artifacts = artifactService.findAllDependOnCurrent(gav, pageSize, (pageNo >= 1?(pageNo-1):0));
+            //artifacts = artifactService.findAllDependOnCurrentPerformanceTest(gav, pageSize, (pageNo >= 1?(pageNo-1):0));
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(artifacts,HttpStatus.OK);
+    }
+
+    @GetMapping("/findAllDependOnCurrentBelongToOrg/{gav}/{pageSize}/{pageNo}/{org}")
+    @ApiOperation(value = "fetch all artifacts depend on current one", notes = "return a list of artifacts")
+    public ResponseEntity<List<Artifact>> findAllDependOnCurrentBelongToOrg(
+            @PathVariable @ApiParam(defaultValue = "log4j:log4j:1.2.16") String gav,
+            @PathVariable @ApiParam(defaultValue = "10") int pageSize,
+            @PathVariable @ApiParam(defaultValue = "1") int pageNo,
+            @PathVariable @ApiParam(defaultValue = "redhat") String org
+            //@PathVariable @ApiParam(defaultValue = "5000")int limit
+    ) {
+        List<Artifact> artifacts = null;
+        try{
+            artifacts = artifactService.findAllDependOnCurrentBelongToOrg(gav, pageSize, (pageNo >= 1?(pageNo-1):0),org);
             //artifacts = artifactService.findAllDependOnCurrentPerformanceTest(gav, pageSize, (pageNo >= 1?(pageNo-1):0));
         }catch (Exception e){
             e.printStackTrace();

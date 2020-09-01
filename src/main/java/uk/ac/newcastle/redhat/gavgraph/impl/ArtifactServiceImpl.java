@@ -149,6 +149,11 @@ public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements 
     }
 
     @Override
+    public List<Artifact> findAllDependOnCurrentBelongToOrg(String gav,int pageSize,int pageNo,String org) {
+        return artifactRepository.findAllDependOnCurrentBelongToOrg(gav,pageSize,pageNo,org);
+    }
+
+    @Override
     public List<Artifact> findAllDependOnCurrentPerformanceTest(String gav,int pageSize,int pageNo) {
         long start = System.currentTimeMillis();
         //count total records
