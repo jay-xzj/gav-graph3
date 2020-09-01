@@ -31,5 +31,4 @@ public class MyConfiguration {
     public Neo4jTransactionManager transactionManager() {
         return new Neo4jTransactionManager(sessionFactory());
     }
-
 }
