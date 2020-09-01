@@ -28,7 +28,9 @@ public interface ArtifactService {
 
     List<Artifact> findAllDependOnCurrent(String gav,int pageSize,int pageNo);
 
-    List<Map<String,Object>> analysePomDependencies(Model model,String orgName);
+    List<Artifact> findAllDependOnCurrentBelongToOrg(String gav,int pageSize,int pageNo,String org);
 
-    List<Artifact> findAllDependOnCurrentV2(String gav);
+    List<Artifact> findAllDependOnCurrentPerformanceTest(String gav,int pageSize,int pageNo);
+
+    List<Map<String,Object>> analysePomDependencies(Model model,String orgName);
 }

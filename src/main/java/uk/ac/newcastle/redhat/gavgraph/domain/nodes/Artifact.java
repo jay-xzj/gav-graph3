@@ -1,5 +1,6 @@
 package uk.ac.newcastle.redhat.gavgraph.domain.nodes;
 
+import com.sun.istack.internal.NotNull;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +9,6 @@ import org.neo4j.ogm.annotation.Relationship;
 import uk.ac.newcastle.redhat.gavgraph.domain.Node;
 import uk.ac.newcastle.redhat.gavgraph.domain.relationships.DependOn;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.Set;

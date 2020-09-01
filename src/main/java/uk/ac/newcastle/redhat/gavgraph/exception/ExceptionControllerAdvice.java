@@ -1,7 +1,6 @@
 package uk.ac.newcastle.redhat.gavgraph.exception;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -14,8 +13,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-import java.io.IOException;
-
 /**
  * Spring boot global exception handling class
  */
@@ -27,12 +24,6 @@ public class ExceptionControllerAdvice implements ResponseBodyAdvice<Object> {
         ObjectError objectError = e.getBindingResult().getAllErrors().get(0);
         //extract the exception info and return
         return new ResultVO<>(ResultCode.VALIDATE_FAILED,objectError.getDefaultMessage());
-    }
-
-    @ExceptionHandler(JsonMappingException.class)
-    public ResultVO<String> HttpMessageNotReadableExceptionHandler(JsonMappingException e) throws IOException {
-        String message = e.getMessage();
-        return new ResultVO<String>(ResultCode.VALIDATE_FAILED,message);
     }
 
     @ExceptionHandler(APIException.class)
