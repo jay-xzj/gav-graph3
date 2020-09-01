@@ -50,8 +50,8 @@ public class Main2 {
         int length = 1;
         //Producer2 p1 = new Producer2(queue,length, Constant.DEPEND_ON_ALL,allPomFiles);
         //Consumer2 c1 = new Consumer2(queue,length,Constant.DEPEND_ON_ALL);
-        Producer2 p1 = new Producer2(queue,length, Constant.ARTIFACT_ALL,allPomFiles);
-        Consumer2 c1 = new Consumer2(queue,length,Constant.ARTIFACT_ALL,folderNum);
+        Producer p1 = new Producer(queue,length, Constant.ARTIFACT_ALL,allPomFiles);
+        Consumer c1 = new Consumer(queue,length,Constant.ARTIFACT_ALL,folderNum);
         //Thread pt1 = new Thread(p1,"P1");
         //Thread ct1 = new Thread(c1, "C1");
         //ExecutorService service = Executors.newCachedThreadPool();

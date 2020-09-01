@@ -38,6 +38,17 @@ public interface ArtifactRepository extends CrudRepository<Artifact, Long> {
     @Query("MATCH (a:Artifact) WHERE a.gav =~ $queryGav RETURN a.gav")
     List<String> findArtifactMatchOrg(String queryGav);
 
+    @Query("MATCH (a:Artifact) RETURN distinct a.gav skip ($pageSize * $pageNo) limit $pageSize")
+    List<String> findAllPagination(int pageSize,int pageNo);
+
+    @Query("MATCH (connected)-[:DEPEND_ON*]->(root:Artifact {gav: $gav})\n" +
+            "WHERE root <> connected RETURN distinct connected skip ($pageSize * $pageNo) limit $pageSize")
+    List<Artifact> findAllDependOnCurrentPerformanceTest(String gav, int pageSize, int pageNo);
+
+    @Query("MATCH (connected)-[:DEPEND_ON*]->(root:Artifact {gav: $gav})\n" +
+            "WHERE root <> connected RETURN distinct connected")
+    int countDependOnCurrent(String gav);
+
     /*@Query("MATCH (connected)-[:DEPEND_ON*$hop]->(root:Artifact {gav: $gav})\n" +
             "WHERE root <> connected RETURN distinct connected")
     List<Artifact> findAllDependOnCurrent(String gav,int hop,int limit);*/

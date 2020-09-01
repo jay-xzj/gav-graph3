@@ -200,6 +200,7 @@ public class ArtifactController {
         List<Artifact> artifacts = null;
         try{
             artifacts = artifactService.findAllDependOnCurrent(gav, pageSize, (pageNo >= 1?(pageNo-1):0));
+            //artifacts = artifactService.findAllDependOnCurrentPerformanceTest(gav, pageSize, (pageNo >= 1?(pageNo-1):0));
         }catch (Exception e){
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -251,6 +252,8 @@ public class ArtifactController {
             if (originalFilename.endsWith("pom")||originalFilename.endsWith("xml")) {
                 pomFile = new File(uploadDir + File.separator + file.getOriginalFilename());
                 model = PomUtil2.getPomModel(pomFile);
+            }else{
+                throw new IllegalArgumentException("File with unsupported suffix.");
             }
             List<Map<String,Object>> reportData = artifactService.analysePomDependencies(model,orgName);
 

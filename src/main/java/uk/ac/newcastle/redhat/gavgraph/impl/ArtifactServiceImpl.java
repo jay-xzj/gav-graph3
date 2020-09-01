@@ -4,7 +4,10 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import uk.ac.newcastle.redhat.gavgraph.controller.ArtifactController;
 import uk.ac.newcastle.redhat.gavgraph.domain.nodes.Artifact;
 import uk.ac.newcastle.redhat.gavgraph.pom.util.PomUtil2;
 import uk.ac.newcastle.redhat.gavgraph.repository.ArtifactRepository;
@@ -17,9 +20,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements ArtifactService {
+
+    private final static Logger logger = LoggerFactory.getLogger(ArtifactServiceImpl.class);
 
     @Resource
     private ArtifactRepository artifactRepository;
@@ -37,9 +43,18 @@ public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements 
     @Override
     public List<Artifact> findAllPagination(int pageSize,int depth){
         //final int pageSize = 10;
+        long start = System.currentTimeMillis();
         final int count = getCount();
         int pageCount = (count % pageSize) == 0 ? (count/pageSize) : ((count/pageSize)+1);
         List<Artifact> list = new ArrayList<>();
+        for (int i = 0; i < pageCount; i++) {
+            int pageNo = i;
+            artifactRepository.findAllPagination(pageSize, pageNo);
+        }
+        long end = System.currentTimeMillis();
+        int seconds = (int)((end - start) / 1000);
+        logger.info("TOTAL TIME CONSUMED : " +seconds);
+        System.out.println();
 
         //pageNumber = i
         //query all
@@ -54,9 +69,9 @@ public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements 
         }*/
 
         //query One page（OOM：因为把所有的depend on也查出来了）
-        Iterable<Artifact> page = getPage(0, pageSize,depth);
+        /*Iterable<Artifact> page = getPage(0, pageSize,depth);
         List<Artifact> artifacts = Lists.newArrayList(page);
-        list.addAll(artifacts);
+        list.addAll(artifacts);*/
 
 
         /*Map<String, Integer> params = new HashMap<>();
@@ -131,6 +146,34 @@ public class ArtifactServiceImpl extends MyNeo4jRepository<Artifact> implements 
     @Override
     public List<Artifact> findAllDependOnCurrent(String gav,int pageSize,int pageNo) {
         return artifactRepository.findAllDependOnCurrent(gav,pageSize,pageNo);
+    }
+
+    @Override
+    public List<Artifact> findAllDependOnCurrentPerformanceTest(String gav,int pageSize,int pageNo) {
+        long start = System.currentTimeMillis();
+        //count total records
+        /*final int count = artifactRepository.countDependOnCurrent(gav);
+        int pageCount = (count % pageSize) == 0 ? (count/pageSize) : ((count/pageSize)+1);*/
+        //int pageNum = 0;
+        while(true){
+            List<Artifact> list = artifactRepository.findAllDependOnCurrentPerformanceTest(gav, pageSize, pageNo);
+            int size = list.size();
+            if (size==0){
+                break;
+            }
+            if (size<pageSize) {
+                logger.info("already queried : " + pageSize * pageNo +size);
+            }else{
+                logger.info("already queried : " + pageSize * (pageNo+1));
+            }
+            pageNo++;
+        }
+        long end = System.currentTimeMillis();
+        int seconds = (int)((end - start) / 1000);
+        long ms = (end-start)%1000;
+        logger.info("TOTAL TIME CONSUMED : " +seconds+" SECONDS, "+ms+" MS");
+        logger.info("end");
+        return null;
     }
 
     @Override

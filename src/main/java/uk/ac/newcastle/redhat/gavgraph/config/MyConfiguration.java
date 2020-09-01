@@ -17,7 +17,7 @@ public class MyConfiguration {
     @Bean
     public SessionFactory sessionFactory() {
         // with domain entity base package(s) 这边如果不扫描到domain就连不上数据库
-        return new SessionFactory(configuration(), "uk.ac.newcastle.redhat.gavgraph");
+        return new SessionFactory(configuration(), "uk.ac.newcastle.redhat.gavgraph.domain");
     }
 
     @Bean

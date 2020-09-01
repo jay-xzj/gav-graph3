@@ -1,5 +1,6 @@
 package uk.ac.newcastle.redhat.gavgraph.domain.nodes;
 
+import com.sun.istack.internal.NotNull;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +29,7 @@ public class Artifact extends Node implements Serializable {
     @ApiModelProperty(hidden = true)
     private Long id;
 
+    @NotNull
     @ApiModelProperty(example = "uk.neo4j.graph")
     private String groupId;
 
